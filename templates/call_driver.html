@@ -1,0 +1,74 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Call Driver</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 0;
+            padding: 0;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+            background-color: #f4f4f4;
+        }
+
+        #callDriverBtn {
+            padding: 15px 30px;
+            font-size: 16px;
+            color: white;
+            background-color: #007bff;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            transition: background-color 0.3s ease;
+            margin-top: 20px;
+        }
+
+        #callDriverBtn:hover {
+            background-color: #0056b3;
+        }
+
+        #callDriverBtn:active {
+            background-color: #00408d;
+        }
+        #brandLogo {
+            display: block;
+            margin: 0 auto;
+            width: 700px; /* Increase the width as needed */
+            height: 500px; /* Height will adjust automatically */
+        }
+    </style>
+</head>
+<body>
+    <!-- Content specific to calling the driver -->
+    <img src="{{ url_for('static', filename='img/driver2.jpeg') }}" alt="Driver 2 Logo" id="brandLogo">
+   
+    <button id="callDriverBtn" onclick="callDriver()">Call Driver</button>
+    
+
+    <script>
+       function callDriver() {
+    // Example: Fetch driver's phone number from your server
+    fetch('/get_driver_phone_number')
+    .then(response => response.json())
+    .then(data => {
+        if (data.phoneNumber) {
+            // For web applications, you can redirect to a "tel:" link
+            window.location.href = `tel:${data.phoneNumber}`;
+        } else {
+            alert('Phone number not available.');
+        }
+    })
+    .catch(error => {
+        console.error('Error:', error);
+    });
+}
+
+    </script>
+</body>
+</html>

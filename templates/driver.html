@@ -1,0 +1,134 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Driver Page</title>
+  <style>
+    body {
+      margin: 0;
+      padding: 0;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+    }
+
+    gmp-map {
+      height: 60vh;
+      width: 80%;
+      margin-top: 20px;
+    }
+
+    form {
+      margin-top: 20px;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+    }
+
+    label {
+      margin-bottom: 8px;
+    }
+
+    button {
+      padding: 10px 20px;
+      background-color: #28a745; 
+      color: #fff;
+      border: none;
+      border-radius: 4px;
+      cursor: pointer;
+      margin-top: 10px;
+    }
+
+    #orders {
+      margin-top: 20px;
+      width: 80%;
+    }
+
+    #orders ul {
+      list-style-type: none;
+      padding: 0;
+    }
+
+    #orders li {
+      border: 1px solid #ddd;
+      margin-bottom: 10px;
+      padding: 10px;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+    }
+  </style>
+</head>
+
+<body>
+
+  <gmp-map id="map" center="25.204849243164062,55.27001953125" zoom="14" map-id="DEMO_MAP_ID">
+    <gmp-advanced-marker position="25.204849243164062,55.27001953125" title="User Location">
+    </gmp-advanced-marker>
+  </gmp-map>
+
+  <form onsubmit="handleSubmit(event)">
+    <label for="userLocation">User Location:</label>
+    <div style="border: 1px solid #ccc; padding: 10px; margin-top: 10px;">
+      <p>{% for trip in orders %} Pickup Location: {{ trip[1] }}, Dropoff Location: {{ trip[2] }}, Pickup Time: {{ trip[3] }} {% endfor %}</p>
+    </div>
+    <label for="acceptDecline">Accept or Decline:</label>
+    <select id="acceptDecline" name="acceptDecline">
+      <option value="accept">Accept</option>
+      <option value="decline">Decline</option>
+    </select>
+
+    <button type="submit">Submit</button>
+  </form>
+
+  <script async defer src="https://maps.googleapis.com/maps/api/js?key=AIzaSyDR6EsMRRA-L-Y0iwnPF-Tr1Zx-9BMIX6o&libraries=places&callback=initAutocomplete"></script>
+
+  <script>
+    let map;
+
+    function initMap() {
+      // Initialize the map
+      map = new google.maps.Map(document.getElementById('map'), {
+        center: { lat: 48.7920, lng: 2.3985 },
+        zoom: 14
+      });
+
+      // Add a marker for the user's location
+      new google.maps.Marker({
+        position: { lat: 48.7920, lng: 2.3985 },
+        map: map,
+        title: 'User Location'
+      });
+
+      // Initialize the Google Places Autocomplete for userLocation
+      var userLocationInput = document.getElementById('userLocation');
+      var userLocationAutocomplete = new google.maps.places.Autocomplete(userLocationInput);
+    }
+
+    function initAutocomplete() {
+      initMap();
+    }
+
+    // Add this function to handle form submission
+    function handleSubmit(event) {
+      event.preventDefault(); // Prevent the default form submission behavior
+
+      // Get the selected value from the dropdown
+      var acceptDecline = document.getElementById('acceptDecline').value;
+
+      // Check if the selected value is 'accept'
+      if (acceptDecline === 'accept') {
+        // Show an alert if the value is 'accept'
+        alert('Your trip has been accepted!');
+      } else {
+        // Handle other cases if needed
+        alert('Your trip has been declined.');
+      }
+    }
+  </script>
+
+</body>
+
+</html>

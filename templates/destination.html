@@ -1,0 +1,253 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Enter Your Destination</title>
+  <style>
+    body {
+      margin: 0;
+      padding: 0;
+      display: flex;
+      flex-direction: row;
+      align-items: flex-start;
+    }
+        
+    #dashboard {
+  width: 100%;
+  background-color: black;
+  padding: 10px 0;
+  text-align: center;
+  position: fixed; /* Add fixed positioning */
+  top: 0; /* Set top to 0 to cover the entire heading */
+  left: 0; /* Set left to 0 to cover the entire heading */
+  z-index: 1; /* Set a higher z-index to keep it above other elements */
+}
+
+#dashboard a {
+  color: rgb(255, 255, 255);
+  margin: 0 10px;
+  text-decoration: none;
+}
+
+#map {
+  height: 60vh;
+  width: 50%;
+  margin: 20px;
+  margin-top: 100px;
+  float: left; /* Add float to position the map on the left */
+}
+
+form {
+  margin: 20px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  width: 50%;
+  margin-top: 200px;
+}
+
+
+    form {
+      margin: 20px;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      width: 50%;
+      margin-top: 200px;
+    }
+
+    label {
+      margin-bottom: 8px;
+    }
+
+    input {
+      padding: 10px;
+      width: 100%;
+      box-sizing: border-box;
+      margin-bottom: 15px;
+    }
+
+    button {
+      padding: 10px 20px;
+      background-color: #007bff;
+      color: #fff;
+      border: none;
+      border-radius: 4px;
+      cursor: pointer;
+    }
+
+    #duration {
+      margin: 20px;
+      text-align: center;
+      font-size: 18px;
+      color: #333;
+      font-weight: bold;
+
+    }
+
+    #paymentForm {
+      display: none;
+      margin-top: 160px;
+    }
+
+    #totalPrice {
+      margin: 20px;
+      text-align: left;
+      font-size: 18px;
+      color: #333;
+      font-weight: bold;
+    }
+  </style>
+</head>
+
+<body>
+  <div id="dashboard">
+    <a href="{{ url_for('chat') }}">Chat with Driver</a>
+    <a href="{{ url_for('call_driver') }}">Call the Driver</a>
+    <a href="/waiting" class="button-link">Go to Waiting Page</a>
+
+<script type="text/javascript">
+document.getElementById('waitingPageButton').addEventListener('click', function() {
+    window.location.href = '/waiting'; // Replace with the correct path
+});
+</script>
+</div>
+  <div id="map"></div>
+
+  <form method="POST" onsubmit="calculateAndDisplayRoute(event)">
+    <label for="pickupLocation">Enter Pickup Location:</label>
+    <input type="text" id="pickupLocation" name="pickupLocation" placeholder="E.g., Pickup Location" autocomplete="off">
+
+    <label for="dropOffLocation">Enter Drop-Off Location:</label>
+    <input type="text" id="dropOffLocation" name="dropOffLocation" placeholder="E.g., Drop-Off Location" autocomplete="off">
+
+    <label for="pickupTime">Enter Pickup Time:</label>
+    <input type="time" id="pickupTime" name="pickupTime" required>
+
+    <button type="submit">Submit</button>
+  </form>
+
+  <div id="duration"></div>
+  <div id="totalPrice"></div>
+
+  <div id="paymentForm" style="display: none;">
+    <h2>Payment</h2>
+    <label for="cardNumber">Card Number:</label>
+    <input type="text" id="cardNumber" name="cardNumber" placeholder="Enter card number">
+
+    <label for="expiryDate">Expiry Date:</label>
+    <input type="text" id="expiryDate" name="expiryDate" placeholder="MM/YYYY">
+
+    <label for="cvv">CVV:</label>
+    <input type="text" id="cvv" name="cvv" placeholder="CVV">
+
+    <button type="button" onclick="processPayment()">Make Payment</button>
+  </div>
+
+  <script async defer
+    src="https://maps.googleapis.com/maps/api/js?key=AIzaSyDR6EsMRRA-L-Y0iwnPF-Tr1Zx-9BMIX6o&libraries=places&callback=initMap">
+  </script>
+
+  <script>
+    let map;
+    let directionsService;
+    let directionsRenderer;
+    let carMarker;
+
+    function initMap() {
+      // Initialize the map
+      map = new google.maps.Map(document.getElementById('map'), {
+        center: { lat: 48.7920, lng: 2.3985 },
+        zoom: 14
+      });
+
+      // Add a marker for the initial location
+      new google.maps.Marker({
+        position: { lat: 48.7920, lng: 2.3985 },
+        map: map,
+        title: 'My location'
+      });
+
+      directionsService = new google.maps.DirectionsService();
+      directionsRenderer = new google.maps.DirectionsRenderer();
+      directionsRenderer.setMap(map);
+
+      // Initialize the Google Places Autocomplete for pickupLocation
+      var pickupInput = document.getElementById('pickupLocation');
+      var pickupAutocomplete = new google.maps.places.Autocomplete(pickupInput);
+
+      // Initialize the Google Places Autocomplete for dropOffLocation
+      var dropOffInput = document.getElementById('dropOffLocation');
+      var dropOffAutocomplete = new google.maps.places.Autocomplete(dropOffInput);
+    }
+
+    function calculateAndDisplayRoute(event) {
+      event.preventDefault();
+
+      var pickupLocation = document.getElementById('pickupLocation').value;
+      var dropOffLocation = document.getElementById('dropOffLocation').value;
+
+      directionsService.route({
+        origin: pickupLocation,
+        destination: dropOffLocation,
+        travelMode: 'DRIVING'
+      }, function (response, status) {
+        if (status === 'OK') {
+          directionsRenderer.setDirections(response);
+
+          // Place a marker for the car at the beginning of the route
+          if (carMarker) {
+            carMarker.setMap(null);
+          }
+          carMarker = new google.maps.Marker({
+            position: response.routes[0].legs[0].start_location,
+            map: map,
+            icon: 'https://maps.google.com/mapfiles/kml/paddle/go.png',
+            title: 'Car'
+          });
+
+          // Animate the car along the route
+          animateCar(response.routes[0].legs[0].steps, 0);
+
+          // Display the estimated duration
+          var durationText = 'Estimated Duration: ' + response.routes[0].legs[0].duration.text;
+          document.getElementById('duration').innerText = durationText;
+
+          // Calculate and display the total price
+          var durationValue = response.routes[0].legs[0].duration.value; // Duration in seconds
+          var totalPrice = durationValue / 60 * 1; // 1 Euro per minute
+          var totalPriceText = 'Total Price: ' + totalPrice.toFixed(2) + ' Euros';
+          document.getElementById('totalPrice').innerText = totalPriceText;
+
+          // Show the payment form
+          document.getElementById('paymentForm').style.display = 'block';
+        } else {
+          window.alert('Directions request failed due to ' + status);
+        }
+      });
+    }
+
+    function animateCar(steps, index) {
+      if (index < steps.length) {
+        moveCar(steps[index].end_location);
+        setTimeout(function () {
+          animateCar(steps, index + 1);
+        }, 1000);
+      }
+    }
+
+    function moveCar(location) {
+      carMarker.setPosition(location);
+    }
+
+    function processPayment() {
+      // Implement payment processing logic here
+      alert('Payment processed successfully!');
+    }
+  </script>
+
+</body>
+
+</html>
